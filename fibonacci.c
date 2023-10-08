@@ -42,4 +42,8 @@ void insert(node *rootlist_end,int value){
 	}
 }
 
+int get_min(){
+	return min->key;
+}
+
 
