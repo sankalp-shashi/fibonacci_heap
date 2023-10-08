@@ -47,3 +47,17 @@ int get_min(){
 }
 
 
+int extract_min(node *rootlist_end){
+	rootlist_end->right=min->children;
+	(min->children)->left=rootlist_end;
+	min->degree=0;
+	(min->left)->right=min->right;
+	(min->right)->left=min->left;
+	free(min->children);
+	int minimum = min->key;
+	free(min);
+	while(rootlist_end->right!=NULL){
+		rootlist_end=rootlist_end->right;
+	}
+	merge_trees(rootlist_end);
+}
