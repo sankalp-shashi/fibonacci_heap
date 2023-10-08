@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<limits.h>
 int max_degree = 3;
 
 
@@ -15,6 +16,8 @@ typedef struct NODE
 }node; //typedef, to avoid typing 'struct' everytime.
 
 
+node *min; 									//Have to Initialize before insert
+
 //Intended use: rootlist_end->right = getnode(rootlist_end);
 //		rootlist_end = rootlist_end->right;
 node *getnode(node *rootlist_end)
@@ -29,5 +32,14 @@ node *getnode(node *rootlist_end)
 	return newnode;
 }
 
+
+void insert(node *rootlist_end,int value){
+       	rootlist_end->right=getnode(node *rootlist_end);
+	rootlist_end=rootlist_end->right;
+	rootlist_end->key=value;
+	if(value<min->key){
+		min=rootlist_end;
+	}
+}
 
 
