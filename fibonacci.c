@@ -273,3 +273,78 @@ node *merge_trees()
 	}
 	return rebuild_heap(&max_trees, root_array);
 }
+
+void decrease_key(node *ptrtonode,int decreased_key){
+	//If node is already in rootlist, no need to cutout.
+	if (ptrtonode == NULL)
+	{
+		printf("key to be decreased not found in heap.\n");
+		return;
+	}
+
+	if(ptrtonode->parent==NULL){
+		//No need to change min if key was already the minimum.
+		if(ptrtonode==min){
+			ptrtonode->key=decreased_key;
+		}
+		//Updating min.
+		else {
+			ptrtonode->key=decreased_key;
+			if(ptrtonode->key<min->key){
+				min=ptrtonode;
+			}
+		}
+	}
+	//If node is an internal node, cutout if min-heap property is violated.
+	else if(ptrtonode->parent!=NULL){
+		ptrtonode->key=decreased_key;
+		if(ptrtonode->key<(ptrtonode->parent)->key){
+			cutout(ptrtonode);
+			if(ptrtonode->key<min->key){
+				min=ptrtonode;
+			}
+		}
+	}
+}
+
+void cutout(node *ptrtonode){
+	//Do nothing if node is already in rootlist. (In recursive call) (already checked in decrease_key().)
+	if(ptrtonode->parent==NULL){
+		return;
+	}
+	//If node is an internal node:
+	else{
+		//Interconnect the siblings, bypassing node to be cutout.
+		if (ptrtonode->right != NULL) ptrtonode->right->left=ptrtonode->left;
+		if (ptrtonode->left != NULL) ptrtonode->left->right=ptrtonode->right;
+		else ptrtonode->parent->children = ptrtonode->right;
+
+		while (rootlist_end->right !=  NULL)
+			rootlist_end = rootlist_end->right;
+		//Attaching node at end of rootlist, and updating end of rootlist.
+		rootlist_end->right=ptrtonode;
+		rootlist_end->right->left = rootlist_end;
+		rootlist_end=rootlist_end->right;
+
+		//Isolating the node being cutout.
+//		ptrtonode->left=rootlist_end;
+		ptrtonode->right=NULL;
+		node *temp=ptrtonode->parent; //Storing parent temporarily.
+		ptrtonode->parent=NULL;
+
+//	printf("in cutout:\n");
+//	rec_display(rootlist_end);
+
+		//Marking parent if not marked already.
+		temp->degree=temp->degree-1;
+		if(temp->marked==0){
+			temp->marked=1;
+		}
+
+		//Recursively cutting out parent if already marked.
+		else if(temp->marked==1){
+			temp->marked=0;
+			cutout(temp);
+		}
+	}
+}
