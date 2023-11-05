@@ -16,7 +16,78 @@ typedef struct NODE
 }node; //typedef, to avoid typing 'struct' everytime.
 
 
-node *min; 									//Have to Initialize before insert
+node *min = NULL;
+node *rootlist_end = NULL; 									//Have to Initialize before insert
+
+
+void print_tree(node *root)
+{
+	node *temp = root;
+	while (temp != NULL)
+	{
+		printf("%d: ",temp->key);
+		node *child = temp->children;
+		while (child != NULL)
+		{
+			printf("%d ",child->key);
+			child = child->right;
+		}
+		printf("\n");
+		print_tree(temp->children);
+		temp = temp->right;
+	}
+
+}
+
+void display(node *rootlist_end)
+{
+	node *temp = rootlist_end;
+	if (temp == NULL)
+		return;
+	node *ptr = temp;
+	while (temp->left != NULL)
+	{
+		temp = temp->left;
+		if (temp == ptr)
+			break;
+	}
+	print_tree(temp);
+}
+
+//To find node for decrease key.
+node *search(int value, node *rootlist_end)
+{
+	//If element found, return its address.
+	node *temp = rootlist_end;
+	if (temp == NULL)
+		return NULL;
+	if (temp->key == value)
+		return temp;
+	//If element might be an internal node, check the children recursively. 
+	else if ((temp->key < value) && (temp->children != NULL))
+	{
+		temp = temp->children;
+		while (temp->right != NULL)
+			temp = temp->right;
+		return search(value, temp);
+	}
+	//Else just check the next tree.
+	else
+		return search(value, temp->left);
+}
+
+node* find_new_min()
+{
+	node *new_min = rootlist_end;
+	node *temp = new_min;
+	while (temp != NULL)
+	{
+		if (temp->key < new_min->key)
+			new_min = temp;
+		temp = temp->left;
+	}
+	return new_min;
+}
 
 //Intended use: rootlist_end->right = getnode(rootlist_end);
 //		rootlist_end = rootlist_end->right;
