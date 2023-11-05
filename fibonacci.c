@@ -103,16 +103,21 @@ node *getnode(node *rootlist_end)
 	return newnode;
 }
 
-
-void insert(node *rootlist_end,int value){
-       	rootlist_end->right=getnode(node *rootlist_end);
+void insert(int value){
+       	if (rootlist_end == NULL){
+       		rootlist_end = getnode(rootlist_end);
+       		rootlist_end->key = value;
+       		min=rootlist_end;
+       		return;
+       	}
+       	rootlist_end->right=getnode(rootlist_end);
 	rootlist_end=rootlist_end->right;
 	rootlist_end->key=value;
 	if(value<min->key){
 		min=rootlist_end;
 	}
+	return;
 }
-
 int get_min(){
 	return min->key;
 }
@@ -274,6 +279,48 @@ node *merge_trees()
 	return rebuild_heap(&max_trees, root_array);
 }
 
+void cutout(node *ptrtonode){
+        //Do nothing if node is already in rootlist. (In recursive call) (already checked in decrease_key().)
+        if(ptrtonode->parent==NULL){
+                return;
+        }
+        //If node is an internal node:
+        else{
+                //Interconnect the siblings, bypassing node to be cutout.
+                if (ptrtonode->right != NULL) ptrtonode->right->left=ptrtonode->left;
+                if (ptrtonode->left != NULL) ptrtonode->left->right=ptrtonode->right;
+                else ptrtonode->parent->children = ptrtonode->right;
+
+                while (rootlist_end->right !=  NULL)
+                        rootlist_end = rootlist_end->right;
+                //Attaching node at end of rootlist, and updating end of rootlist.
+                rootlist_end->right=ptrtonode;
+                rootlist_end->right->left = rootlist_end;
+                rootlist_end=rootlist_end->right;
+
+                //Isolating the node being cutout.
+//              ptrtonode->left=rootlist_end;
+                ptrtonode->right=NULL;
+                node *temp=ptrtonode->parent; //Storing parent temporarily.
+                ptrtonode->parent=NULL;
+
+//      printf("in cutout:\n");
+//      rec_display(rootlist_end);
+
+                //Marking parent if not marked already.
+                temp->degree=temp->degree-1;
+                if(temp->marked==0){
+                        temp->marked=1;
+                }
+
+                //Recursively cutting out parent if already marked.
+                else if(temp->marked==1){
+                        temp->marked=0;
+                        cutout(temp);
+                }
+        }
+}
+
 void decrease_key(node *ptrtonode,int decreased_key){
 	//If node is already in rootlist, no need to cutout.
 	if (ptrtonode == NULL)
@@ -307,44 +354,3 @@ void decrease_key(node *ptrtonode,int decreased_key){
 	}
 }
 
-void cutout(node *ptrtonode){
-	//Do nothing if node is already in rootlist. (In recursive call) (already checked in decrease_key().)
-	if(ptrtonode->parent==NULL){
-		return;
-	}
-	//If node is an internal node:
-	else{
-		//Interconnect the siblings, bypassing node to be cutout.
-		if (ptrtonode->right != NULL) ptrtonode->right->left=ptrtonode->left;
-		if (ptrtonode->left != NULL) ptrtonode->left->right=ptrtonode->right;
-		else ptrtonode->parent->children = ptrtonode->right;
-
-		while (rootlist_end->right !=  NULL)
-			rootlist_end = rootlist_end->right;
-		//Attaching node at end of rootlist, and updating end of rootlist.
-		rootlist_end->right=ptrtonode;
-		rootlist_end->right->left = rootlist_end;
-		rootlist_end=rootlist_end->right;
-
-		//Isolating the node being cutout.
-//		ptrtonode->left=rootlist_end;
-		ptrtonode->right=NULL;
-		node *temp=ptrtonode->parent; //Storing parent temporarily.
-		ptrtonode->parent=NULL;
-
-//	printf("in cutout:\n");
-//	rec_display(rootlist_end);
-
-		//Marking parent if not marked already.
-		temp->degree=temp->degree-1;
-		if(temp->marked==0){
-			temp->marked=1;
-		}
-
-		//Recursively cutting out parent if already marked.
-		else if(temp->marked==1){
-			temp->marked=0;
-			cutout(temp);
-		}
-	}
-}
