@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<limits.h>
+#define MAX_BUF_SIZE 50
 int max_degree = 3;
 
 
@@ -25,6 +26,12 @@ void print_tree(node *root)
 	node *temp = root;
 	while (temp != NULL)
 	{
+		node *level_finder= temp;
+		while (level_finder->parent != NULL)
+		{
+			printf("\t");
+			level_finder = level_finder->parent;
+		}
 		printf("%d: ",temp->key);
 		node *child = temp->children;
 		while (child != NULL)
@@ -120,7 +127,13 @@ void insert(int value){
 
 
 int get_min(){
-	return min->key;
+	if (min != NULL)
+		return min->key;
+	else
+	{
+		printf("Heap is empty, no element is present.\n");
+		return INT_MIN;
+	}
 }
 
 
@@ -318,7 +331,6 @@ void cutout(node *ptrtonode){
 		rootlist_end=rootlist_end->right;
 
 		//Isolating the node being cutout.
-//		ptrtonode->left=rootlist_end;
 		ptrtonode->right=NULL;
 		node *temp=ptrtonode->parent; //Storing parent temporarily.
 		ptrtonode->parent=NULL;
@@ -343,7 +355,7 @@ void decrease_key(node *ptrtonode,int decreased_key){
 	//If node is already in rootlist, no need to cutout.
 	if (ptrtonode == NULL)
 	{
-		printf("key to be decreased not found in heap.\n");
+		printf("Key to be decreased not found in heap.\n");
 		return;
 	}
 
@@ -373,51 +385,197 @@ void decrease_key(node *ptrtonode,int decreased_key){
 }
 
 
+void delete_key(int x)
+{
+	node *ptrtonode = search(x, rootlist_end);	//Getting the pointer to node to be deleted.
+	if (ptrtonode == NULL)				//If heap is empty,
+	{
+		printf("Node with key %d is not present in the heap.\n", x);
+		return;
+	}
+	
+	//If node is in the rootlist.
+	if (ptrtonode->parent == NULL)
+	{
+		//Insert the children (if present) of the node into the rootlist.
+		if (ptrtonode->children != NULL){
+			node *child = ptrtonode->children;
+			while (child != NULL)
+			{
+				child->parent = NULL;
+				child = child->right;
+			}
+			if (rootlist_end != NULL)
+				rootlist_end->right = ptrtonode->children;
+			ptrtonode->children->left = rootlist_end;
+		}
+
+
+		//Interconnecting siblings of node.
+		if (ptrtonode->left != NULL) (ptrtonode->left)->right=ptrtonode->right;
+		if (ptrtonode->right != NULL) (ptrtonode->right)->left=ptrtonode->left;
+
+		
+		//move rootlist_end pointer to the end of the rootlist.
+		if (rootlist_end != NULL)
+			while(rootlist_end->right!=NULL)
+				rootlist_end = rootlist_end->right;
+			
+		if (rootlist_end == ptrtonode)
+			rootlist_end = rootlist_end->left;	
+
+		if (ptrtonode == min)
+		{
+			min = NULL;
+			min = find_new_min();
+		}
+		free(ptrtonode);
+		ptrtonode = NULL;
+		printf("Successfully deleted node with key %d.\n",x);
+		return;
+	}
+	
+	if (ptrtonode->children != NULL)
+	{
+		node *last_child = ptrtonode->children;
+		while (last_child->right != NULL)
+		{
+			last_child->parent = ptrtonode->parent;
+			last_child = last_child->right;
+		}
+		last_child->parent = ptrtonode->parent;
+
+		if (ptrtonode->left != NULL)	ptrtonode->left->right = ptrtonode->children;
+		else	ptrtonode->parent->children = ptrtonode->children;
+
+		if (ptrtonode->right != NULL)	ptrtonode->right->left = last_child;
+		ptrtonode->parent->degree += ptrtonode->degree - 1;
+		free(ptrtonode);
+		ptrtonode = NULL;
+		printf("Successfully deleted node with key %d.\n",x);
+		return;
+	}
+	
+	else
+	{
+		if (ptrtonode->left != NULL)	ptrtonode->left->right = ptrtonode->right;
+		if (ptrtonode->right != NULL)	ptrtonode->right->left = ptrtonode->left;		
+		
+		if (ptrtonode->left == NULL)	ptrtonode->parent->children = ptrtonode->right;
+		ptrtonode->parent->degree -= 1;
+		free(ptrtonode);
+		ptrtonode = NULL;
+		printf("Successfully deleted node with key %d.\n",x);
+		return;
+	}
+}
+
+
+void clear_heap()
+{
+	while(rootlist_end->left != NULL)
+	{
+		rootlist_end = rootlist_end->left;
+		free(rootlist_end->right);
+	}
+	free(rootlist_end);
+	rootlist_end = NULL;
+	
+	printf("Heap is empty now.\n");
+}
+
+
 int main()
 {
 
-	printf("Heap is displayed as follows:\nParent: Child1 Child2 Child3...\n");
+	printf("In display, the Heap is displayed as follows:\nLevel0\tLevel1\tLevel2...\nParent1: C1 C2...\n");
+	printf("\tParent2: C1 C2...\n");
+	printf("\t\tParent3: C1 C2...\n");
+	printf("Where C1, C2, etc are child nodes.\n\n");
+	printf("If a parent nodes are printed after tab spaces corresponding to their levels.\n");
+	printf("This means, if a parent node is 2 levels below the rootlist, it will be printed after 2 tab spaces.\n");
 	for (int i = 1; i <= 10; i++)
 		insert(i);
+		
+	char input[MAX_BUF_SIZE];
+	
 	printf("Initial heap:\n");
 	display(rootlist_end);
-	printf("\n\n\n");
-
-	decrease_key(search(10,rootlist_end),0);
-
-	printf("Heap after decreasing key %d to %d:\n", 10, 0);
-	display(rootlist_end);
-	printf("\n\n\n");
-
-	extract_min();
-
-	printf("Heap after extracting min:\n");
-	display(rootlist_end);
-	printf("\n\n\n");
-
-	decrease_key(search(9,rootlist_end),0);
-
-	printf("Heap after decreasing key %d to %d:\n", 9, 0);
-	display(rootlist_end);
-	printf("\n\n\n");
-
-	extract_min();
-
-	printf("Heap after extracting min:\n");
-	display(rootlist_end);
-	printf("\n\n\n");
-
-	decrease_key(search(5,rootlist_end),0);
-
-	printf("Heap after decreasing key %d to %d:\n", 5, 0);
-	display(rootlist_end);
-	printf("\n\n\n");
-
-	extract_min();
-
-	printf("Heap after extracting min:\n");
-	display(rootlist_end);
-	printf("\n\n\n");
-
+	printf("Would you like to clear the heap? (Enter y or n)\n");
+	fgets(input, MAX_BUF_SIZE, stdin);
+	if (input[0] == 'y' || input[0] == 'Y')
+		clear_heap();
+	while (1)
+	{
+		printf("\n\n\nFunctions available on the heap:\n");
+		printf("1. Type 1 to insert an element into the heap.\n");
+		printf("2. Type 2 to display the entire heap.\n");
+		printf("3. Type 3 to print the minimum element (find_min).\n");
+		printf("4. Type 4 to extract the minimum element.\n");
+		printf("5. Type 5 to decrease the key of a particular element.\n");
+		printf("6. Type 6 to delete a particular element.\n");
+		printf("7. Type 7 to quit the program.\n");
+		int control = 0;
+		scanf("%d",&control);
+		printf("\n\n\n");
+		
+		switch(control)
+		{
+			case 1:
+			{
+				int x;
+				printf("Enter element to insert: ");
+				scanf("%d",&x);
+				insert(x);
+				break;
+			}
+			case 2:
+			{
+				display(rootlist_end);
+				break;
+			}
+			case 3:
+			{
+				int x = get_min();
+				if (x != INT_MIN)
+					printf("The minimum is %d.\n", x);	
+				break;
+			}
+			case 4:
+			{
+				int x = extract_min();
+				if (x != INT_MIN)
+					printf("The minimum is %d, it has been removed from the heap.\n", x);
+				break;
+			}
+			case 5:
+			{
+				int x,y;
+				printf("Enter key to be decreased: ");
+				scanf("%d", &x);
+				printf("Enter new key value: ");
+				scanf("%d",&y);
+				decrease_key(search(x, rootlist_end), y);
+				printf("key has been changed to %d.\n",y);
+				break;
+			}
+			case 6:
+			{
+				int x;
+				printf("Enter key to be deleted: ");
+				scanf("%d", &x);
+				delete_key(x);
+				break;
+			}
+			case 7:
+			{
+				return 0;
+			}
+			default:
+			{
+				printf("Invalid input. Please try again\n");
+			}
+		}
+	}
 	return 0;
 }

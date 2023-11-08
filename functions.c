@@ -22,6 +22,8 @@ void decrease_key(node *ptrtonode,int decreased_key, node **min_add, node **root
 node *getnode(node **rootlist_end_add, int vertex);
 
 //Utility functions to print fib heap, and search for a node (obsolete).
+void clear_heap();
+void delete_key(int x);
 void print_tree(node *root);
 void display(node **rootlist_end_add);
 node *search(int value, node **rootlist_end_add);
@@ -382,3 +384,103 @@ void decrease_key(node *ptrtonode,int decreased_key, node **min_add, node **root
 		}
 	}
 }
+
+void delete_key(int x)
+{
+	node *ptrtonode = search(x, rootlist_end);	//Getting the pointer to node to be deleted.
+	if (ptrtonode == NULL)				//If heap is empty,
+	{
+		printf("Node with key %d is not present in the heap.\n", x);
+		return;
+	}
+	
+	//If node is in the rootlist.
+	if (ptrtonode->parent == NULL)
+	{
+		//Insert the children (if present) of the node into the rootlist.
+		if (ptrtonode->children != NULL){
+			node *child = ptrtonode->children;
+			while (child != NULL)
+			{
+				child->parent = NULL;
+				child = child->right;
+			}
+			if (rootlist_end != NULL)
+				rootlist_end->right = ptrtonode->children;
+			ptrtonode->children->left = rootlist_end;
+		}
+
+
+		//Interconnecting siblings of node.
+		if (ptrtonode->left != NULL) (ptrtonode->left)->right=ptrtonode->right;
+		if (ptrtonode->right != NULL) (ptrtonode->right)->left=ptrtonode->left;
+
+		
+		//move rootlist_end pointer to the end of the rootlist.
+		if (rootlist_end != NULL)
+			while(rootlist_end->right!=NULL)
+				rootlist_end = rootlist_end->right;
+			
+		if (rootlist_end == ptrtonode)
+			rootlist_end = rootlist_end->left;	
+
+		if (ptrtonode == min)
+		{
+			min = NULL;
+			min = find_new_min();
+		}
+		free(ptrtonode);
+		ptrtonode = NULL;
+		printf("Successfully deleted node with key %d.\n",x);
+		return;
+	}
+	
+	if (ptrtonode->children != NULL)
+	{
+		node *last_child = ptrtonode->children;
+		while (last_child->right != NULL)
+		{
+			last_child->parent = ptrtonode->parent;
+			last_child = last_child->right;
+		}
+		last_child->parent = ptrtonode->parent;
+
+		if (ptrtonode->left != NULL)	ptrtonode->left->right = ptrtonode->children;
+		else	ptrtonode->parent->children = ptrtonode->children;
+
+		if (ptrtonode->right != NULL)	ptrtonode->right->left = last_child;
+		ptrtonode->parent->degree += ptrtonode->degree - 1;
+		free(ptrtonode);
+		ptrtonode = NULL;
+		printf("Successfully deleted node with key %d.\n",x);
+		return;
+	}
+	
+	else
+	{
+		if (ptrtonode->left != NULL)	ptrtonode->left->right = ptrtonode->right;
+		if (ptrtonode->right != NULL)	ptrtonode->right->left = ptrtonode->left;		
+		
+		if (ptrtonode->left == NULL)	ptrtonode->parent->children = ptrtonode->right;
+		ptrtonode->parent->degree -= 1;
+		free(ptrtonode);
+		ptrtonode = NULL;
+		printf("Successfully deleted node with key %d.\n",x);
+		return;
+	}
+}
+
+
+void clear_heap()
+{
+	while(rootlist_end->left != NULL)
+	{
+		rootlist_end = rootlist_end->left;
+		free(rootlist_end->right);
+	}
+	free(rootlist_end);
+	rootlist_end = NULL;
+	
+	printf("Heap is empty now.\n");
+}
+
