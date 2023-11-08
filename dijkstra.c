@@ -128,10 +128,10 @@ void print_graph()
 			temp = temp->next;
 			if (temp == NULL || temp->next == NULL)
 				break;
-			printf("%d,%d->",temp->value,temp->weight);
+			printf("(%d, weight: %d)->",temp->value,temp->weight);
 		}
 		if (temp != NULL && temp->value != i)
-			printf("%d,%d\n",temp->value,temp->weight);
+			printf("(%d, weight: %d)\n",temp->value,temp->weight);
 		else printf("\n");
 	}
 	printf("\n");
@@ -140,9 +140,6 @@ void print_graph()
 
 void dijkstra(int src)
 {
-//	FIBHEAP F;
-//	F.rootlist_end = NULL;
-//	F.min = NULL;
 	node *rootlist_end = NULL, *min = NULL;
 	node *node_array[n];
 	insert(0, &rootlist_end, &min, src);
@@ -177,10 +174,14 @@ void dijkstra(int src)
 		}
 	}
 	
-	printf("Vertex   Distance from Source\n");
+	printf("\nVertex   Distance from Source\n");
 	for (int i = 0; i < n; i++)
-		printf("%d\t%d\n", i, adjacency_list[i]->min_distance);
-
+	{
+		if (adjacency_list[i]->min_distance != INT_MAX)
+			printf("%d\t%d\n", i, adjacency_list[i]->min_distance);
+		else
+			printf("%d\tinfinity\n", i);
+	}
 }
 
 
@@ -205,10 +206,11 @@ int main()
 		
 	//Taking edge input.
 	printf("Enter your edges in the form of vertices separated by a space.\n");
+	printf("For example, if there is an edge from vertex 1 to vertex 2, of weight 3, type:\n");
+	printf("1 2 3\n\n");
 	edge_input(U_or_D);
 	
 	//Printing the adjacency list.
-	printf("\nProblem 1a:");
 	if (U_or_D == 'U')
 		printf("\nYour undirected graph is:\n");
 	else

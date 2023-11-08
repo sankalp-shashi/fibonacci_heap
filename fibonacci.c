@@ -298,7 +298,11 @@ int extract_min(){
 			rootlist_end = rootlist_end->right;
 		
 	if (rootlist_end == min)
+	{
 		rootlist_end = rootlist_end->left;	
+		if (rootlist_end != NULL)
+			rootlist_end->right = NULL;
+	}
 	//Storing minimum key value.
 	int minimum = min->key;
 	free(min);
