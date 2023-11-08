@@ -6,7 +6,8 @@ Compile and run as usual
 
 functions.c is not meant to be compiled, it is just a collection of functions.
 
-input for fibonacci.c is not needed.
+input for fibonacci.c:
+	input instructions will be printed on terminal when this file is compiled and run.
 
 input for dijkstra:
 	for automatic input, type this after compiling dijkstra.c:
